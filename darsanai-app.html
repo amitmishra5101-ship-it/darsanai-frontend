@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>darsanai — Studio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#07070a;--surface:#0e0e13;--s2:#141419;--s3:#1b1b23;
+  --border:#ffffff0d;--border2:#ffffff18;
+  --gold:#c9a84c;--gold2:#7a6330;--glow:rgba(201,168,76,.10);
+  --ember:#e05c2a;--paper:#f0eadc;
+  --silver:#9a9aaa;--silver2:#5a5a6a;
+  --ok:#3ecf8e;--err:#e05c5c;--blue:#7eb8f7;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--ink);color:var(--paper);font-family:'Syne',sans-serif;font-size:14px;}
+button,select,input,textarea{font-family:inherit;}
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+#app{display:flex;height:100vh;overflow:hidden;}
+
+/* SIDEBAR */
+#sidebar{width:232px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sb-logo{padding:26px 22px 22px;border-bottom:1px solid var(--border);}
+.sb-logo-text{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;}
+.sb-logo-text span{color:rgba(240,234,220,.3);font-weight:300;}
+.sb-logo-sub{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.3em;color:var(--gold2);margin-top:3px;text-transform:uppercase;}
+.sb-nav{flex:1;padding:14px 10px;overflow-y:auto;}
+.sb-section{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.3em;color:var(--silver2);padding:12px 12px 6px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:7px;cursor:pointer;transition:all .18s;margin-bottom:2px;font-size:13px;font-weight:500;color:var(--silver);border:1px solid transparent;}
+.nav-item:hover{background:var(--s2);color:var(--paper);}
+.nav-item.active{background:var(--glow);border-color:rgba(201,168,76,.2);color:var(--gold);}
+.nav-icon{font-size:14px;width:18px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;font-family:'DM Mono',monospace;font-size:8px;padding:2px 6px;background:var(--ok);color:var(--ink);border-radius:2px;}
+.sb-credits{padding:14px;border-top:1px solid var(--border);}
+.cr-box{background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:13px;}
+.cr-label{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.2em;color:var(--silver2);text-transform:uppercase;margin-bottom:6px;}
+.cr-num{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:var(--gold);line-height:1;margin-bottom:5px;}
+.cr-bar{height:3px;background:var(--border2);border-radius:2px;margin-bottom:9px;overflow:hidden;}
+.cr-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:2px;width:57%;}
+.cr-btn{width:100%;padding:8px;background:var(--gold);border:none;font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);cursor:pointer;border-radius:4px;transition:background .2s;}
+.cr-btn:hover{background:var(--paper);}
+.sb-user{padding:13px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:10px;cursor:pointer;}
+.u-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--gold2),var(--gold));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--ink);flex-shrink:0;}
+.u-name{font-size:12px;font-weight:600;}
+.u-plan{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--gold);}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#topbar{height:58px;flex-shrink:0;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 28px;gap:12px;}
+#page-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;flex:1;}
+#page-title em{font-style:italic;color:var(--gold);}
+.tb-btn{padding:8px 18px;border-radius:6px;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;cursor:pointer;transition:all .18s;border:none;}
+.tb-btn.gold{background:var(--gold);color:var(--ink);}
+.tb-btn.gold:hover{background:var(--paper);}
+.tb-btn.ghost{background:transparent;border:1px solid var(--border2);color:var(--silver);}
+.tb-btn.ghost:hover{border-color:var(--gold);color:var(--gold);}
+#content{flex:1;overflow-y:auto;padding:28px;}
+.page{display:none;}
+.page.active{display:block;}
+
+/* DASHBOARD */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:26px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;transition:all .2s;}
+.stat-card:hover{border-color:rgba(201,168,76,.2);transform:translateY(-2px);}
+.sc-label{font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.2em;color:var(--silver2);text-transform:uppercase;margin-bottom:8px;}
+.sc-num{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;line-height:1;margin-bottom:3px;}
+.sc-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--ok);}
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.sec-hd h2{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;}
+.sec-hd h2 em{font-style:italic;color:var(--gold);}
+.sec-link{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--silver);background:none;border:none;cursor:pointer;}
+.sec-link:hover{color:var(--gold);}
+.video-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:11px;margin-bottom:26px;}
+.vcard{background:var(--surface);border:1px solid var(--border);border-radius:9px;overflow:hidden;cursor:pointer;transition:all .22s;}
+.vcard:hover{border-color:rgba(201,168,76,.28);transform:translateY(-3px);box-shadow:0 14px 36px rgba(0,0,0,.45);}
+.vthumb{aspect-ratio:16/9;position:relative;overflow:hidden;}
+.vthumb-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:26px;transition:transform .4s;}
+.vcard:hover .vthumb-bg{transform:scale(1.07);}
+.vthumb-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(7,7,10,.85) 0%,transparent 55%);display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .25s;}
+.vcard:hover .vthumb-ov{opacity:1;}
+.play-btn{width:40px;height:40px;border-radius:50%;background:rgba(201,168,76,.9);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.vbody{padding:11px;}
+.vtitle{font-size:12px;font-weight:600;margin-bottom:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vmeta{display:flex;align-items:center;gap:7px;font-family:'DM Mono',monospace;font-size:8.5px;color:var(--silver2);}
+.vtag{padding:2px 6px;border-radius:3px;font-family:'DM Mono',monospace;font-size:7.5px;letter-spacing:.08em;text-transform:uppercase;}
+.vtag.t2v{color:var(--gold);border:1px solid rgba(201,168,76,.25);}
+.vtag.i2v{color:var(--blue);border:1px solid rgba(126,184,247,.25);}
+.qs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;}
+.qs-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:22px;cursor:pointer;transition:all .22s;}
+.qs-card:hover{border-color:rgba(201,168,76,.28);transform:translateY(-2px);}
+.qs-icon{font-size:22px;margin-bottom:11px;}
+.qs-title{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:400;margin-bottom:7px;}
+.qs-sub{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--silver);line-height:1.7;}
+
+/* GENERATE */
+.gen-wrap{display:grid;grid-template-columns:1fr 360px;gap:16px;}
+.gpanel{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:24px;display:flex;flex-direction:column;gap:16px;}
+.gen-right{display:flex;flex-direction:column;gap:14px;}
+.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:2px;}
+.tab{padding:9px 18px;font-family:'DM Mono',monospace;font-size:9.5px;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);cursor:pointer;border-bottom:2px solid transparent;transition:all .18s;margin-bottom:-1px;}
+.tab:hover{color:var(--paper);}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold);}
+.flabel{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--silver2);margin-bottom:7px;}
+.fprompt{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:7px;padding:14px;color:var(--paper);font-size:13px;line-height:1.6;resize:vertical;outline:none;transition:border-color .2s;}
+.fprompt:focus{border-color:rgba(201,168,76,.4);}
+.fprompt::placeholder{color:var(--silver2);}
+.prow{display:flex;gap:7px;margin-top:6px;}
+.sm-btn{padding:5px 11px;border-radius:4px;background:var(--s3);border:1px solid var(--border2);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.1em;color:var(--silver);cursor:pointer;transition:all .18s;}
+.sm-btn:hover{border-color:var(--gold);color:var(--gold);}
+.upload-zone{border:1.5px dashed var(--border2);border-radius:9px;padding:42px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;}
+.upload-zone:hover,.upload-zone.drag{border-color:rgba(201,168,76,.4);background:var(--glow);}
+.upload-zone.filled{padding:0;border-style:solid;border-color:rgba(201,168,76,.3);}
+.upload-preview{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:7px;display:block;}
+.upload-icon{font-size:28px;margin-bottom:10px;}
+.upload-title{font-family:'Cormorant Garamond',serif;font-size:17px;margin-bottom:5px;}
+.upload-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--silver);}
+.uclear{position:absolute;top:8px;right:8px;width:26px;height:26px;border-radius:50%;background:rgba(7,7,10,.85);border:1px solid var(--border2);color:var(--silver);cursor:pointer;font-size:11px;display:none;align-items:center;justify-content:center;}
+.chip-row{display:flex;flex-wrap:wrap;gap:5px;}
+.chip{padding:5px 12px;border-radius:18px;border:1px solid var(--border2);font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--silver);cursor:pointer;transition:all .18s;}
+.chip:hover{border-color:var(--gold2);color:var(--paper);}
+.chip.on{border-color:var(--gold);color:var(--gold);background:var(--glow);}
+.fselect{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:9px 11px;color:var(--paper);font-family:'DM Mono',monospace;font-size:10px;outline:none;cursor:pointer;transition:border-color .2s;}
+.fselect:focus{border-color:rgba(201,168,76,.4);}
+.cost-row{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:9px;color:var(--silver2);padding:4px 0;}
+.divider{height:1px;background:var(--border);}
+.gen-btn{width:100%;padding:16px;border-radius:7px;background:var(--gold);border:none;font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--ink);cursor:pointer;transition:all .2s;font-weight:500;position:relative;overflow:hidden;}
+.gen-btn:hover{background:var(--paper);transform:translateY(-1px);}
+.gen-btn:disabled{background:var(--silver2);cursor:not-allowed;transform:none !important;}
+.shimmer{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:shimmer 1.4s infinite;}
+@keyframes shimmer{from{transform:translateX(-100%);}to{transform:translateX(100%);}}
+.prog-box{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:24px;display:none;}
+.prog-hd{display:flex;align-items:center;gap:11px;margin-bottom:16px;}
+.spinner{width:18px;height:18px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin .75s linear infinite;flex-shrink:0;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.prog-title{font-family:'Cormorant Garamond',serif;font-size:17px;}
+.prog-stage{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--silver);letter-spacing:.08em;margin-bottom:10px;}
+.prog-bar{height:3px;background:var(--border2);border-radius:2px;overflow:hidden;margin-bottom:6px;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:2px;transition:width .35s ease;width:0%;}
+.prog-pct{font-family:'DM Mono',monospace;font-size:9px;color:var(--gold);text-align:right;}
+.result-box{background:var(--surface);border:1px solid rgba(201,168,76,.28);border-radius:11px;overflow:hidden;display:none;}
+.result-player{aspect-ratio:16/9;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;}
+.ra-row{padding:14px;display:flex;gap:7px;}
+.ra-btn{flex:1;padding:9px;border-radius:5px;font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.ra-btn.primary{background:var(--gold);border:none;color:var(--ink);}
+.ra-btn.primary:hover{background:var(--paper);}
+.ra-btn.ghost{background:transparent;border:1px solid var(--border2);color:var(--silver);}
+.ra-btn.ghost:hover{border-color:var(--gold);color:var(--gold);}
+
+/* GALLERY */
+.filter-row{display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+
+/* HISTORY */
+.hist-list{display:flex;flex-direction:column;gap:7px;}
+.hist-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:13px 14px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .18s;}
+.hist-item:hover{border-color:rgba(201,168,76,.2);background:var(--s2);}
+.hthumb{width:60px;height:38px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.hinfo{flex:1;min-width:0;}
+.htitle{font-size:13px;font-weight:600;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hmeta{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--silver2);display:flex;gap:9px;flex-wrap:wrap;}
+.hstatus{margin-left:auto;font-family:'DM Mono',monospace;font-size:8.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:3px;flex-shrink:0;}
+.s-done{background:rgba(62,207,142,.09);color:var(--ok);border:1px solid rgba(62,207,142,.2);}
+.s-proc{background:rgba(201,168,76,.09);color:var(--gold);border:1px solid rgba(201,168,76,.2);}
+.s-fail{background:rgba(224,92,92,.09);color:var(--err);border:1px solid rgba(224,92,92,.2);}
+
+/* SETTINGS */
+.settings-wrap{max-width:580px;display:flex;flex-direction:column;gap:14px;}
+.spanel{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:22px;display:flex;flex-direction:column;gap:13px;}
+.sp-title{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;}
+.sp-title em{font-style:italic;color:var(--gold);}
+.finput{width:100%;background:var(--s2);border:1px solid var(--border2);border-radius:6px;padding:9px 12px;color:var(--paper);font-family:'DM Mono',monospace;font-size:10px;outline:none;transition:border-color .2s;}
+.finput:focus{border-color:rgba(201,168,76,.4);}
+.save-btn{align-self:flex-start;padding:9px 20px;border-radius:5px;background:transparent;border:1px solid var(--border2);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.15em;text-transform:uppercase;color:var(--silver);cursor:pointer;transition:all .18s;}
+.save-btn:hover{border-color:var(--gold);color:var(--gold);}
+.plan-row{background:var(--glow);border:1px solid rgba(201,168,76,.2);border-radius:8px;padding:14px;display:flex;justify-content:space-between;align-items:center;}
+.plan-name-txt{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-bottom:3px;}
+.plan-price-txt{font-family:'Cormorant Garamond',serif;font-size:20px;}
+
+/* MODAL */
+#modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(5px);}
+#modal-overlay.open{display:flex;}
+#modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:680px;max-width:92vw;max-height:85vh;overflow-y:auto;animation:slideUp .25s ease;}
+@keyframes slideUp{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+.m-header{padding:22px 26px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.m-title{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;}
+.m-title em{font-style:italic;color:var(--gold);}
+.m-close{width:30px;height:30px;border-radius:50%;background:var(--s2);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;color:var(--silver);transition:all .18s;}
+.m-close:hover{background:var(--err);border-color:var(--err);color:#fff;}
+.m-body{padding:24px;}
+.m-video{aspect-ratio:16/9;border-radius:9px;overflow:hidden;margin-bottom:18px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;}
+.m-meta-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.m-meta-cell{background:var(--s2);border-radius:6px;padding:9px 11px;}
+.m-meta-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--silver2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:3px;}
+.m-meta-val{font-size:12px;font-weight:600;}
+.m-prompt-box{background:var(--s2);border-radius:7px;padding:12px;margin-bottom:18px;}
+.m-actions{display:flex;gap:8px;}
+.m-btn{flex:1;padding:11px;border-radius:6px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.13em;text-transform:uppercase;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:center;gap:6px;}
+.m-btn.gold{background:var(--gold);border:none;color:var(--ink);}
+.m-btn.gold:hover{background:var(--paper);}
+.m-btn.ghost{background:transparent;border:1px solid var(--border2);color:var(--silver);}
+.m-btn.ghost:hover{border-color:var(--gold);color:var(--gold);}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;z-index:200;display:none;}
+#toast.show{display:flex;animation:slideInR .28s ease;}
+@keyframes slideInR{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+.toast-inner{background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:9px;font-family:'DM Mono',monospace;font-size:10px;max-width:300px;}
+.toast-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.td-ok{background:var(--ok);}
+.td-err{background:var(--err);}
+.td-info{background:var(--gold);}
+
+/* GRADIENTS */
+.g1{background:linear-gradient(135deg,#1a0a2e,#4d1b6e,#0d0d1a);}
+.g2{background:linear-gradient(135deg,#0a1628,#1e4a7a,#0a0f1a);}
+.g3{background:linear-gradient(135deg,#1a0800,#5c2200,#0d0500);}
+.g4{background:linear-gradient(135deg,#001a0a,#005c26,#00100a);}
+.g5{background:linear-gradient(135deg,#1a1400,#5c4a00,#0d0a00);}
+.g6{background:linear-gradient(135deg,#0f0a1a,#2a1545,#06030d);}
+.g7{background:linear-gradient(135deg,#001a1a,#005c5c,#001010);}
+.g8{background:linear-gradient(135deg,#1a0010,#5c003a,#0d0008);}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- SIDEBAR -->
+  <div id="sidebar">
+    <div class="sb-logo">
+      <div class="sb-logo-text">darsanai</div>
+      <div class="sb-logo-sub">Cinematic AI Video</div>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Workspace</div>
+      <div class="nav-item active" onclick="goPage('dashboard')"><span class="nav-icon">⊞</span>Dashboard</div>
+      <div class="nav-item" onclick="goPage('generate')"><span class="nav-icon">✦</span>Generate<span class="nav-badge">NEW</span></div>
+      <div class="nav-item" onclick="goPage('gallery')"><span class="nav-icon">◫</span>Gallery</div>
+      <div class="nav-item" onclick="goPage('history')"><span class="nav-icon">◷</span>History</div>
+      <div class="sb-section" style="margin-top:10px;">Account</div>
+      <div class="nav-item" onclick="goPage('settings')"><span class="nav-icon">⚙</span>Settings</div>
+    </div>
+    <div class="sb-credits">
+      <div class="cr-box">
+        <div class="cr-label">Credits remaining</div>
+        <div class="cr-num">172</div>
+        <div class="cr-bar"><div class="cr-fill"></div></div>
+        <button class="cr-btn" onclick="showToast('Opening upgrade page…','info')">↑ Upgrade Plan</button>
+      </div>
+    </div>
+    <div class="sb-user">
+      <div class="u-avatar">AS</div>
+      <div><div class="u-name">Arjun Sharma</div><div class="u-plan">Creator Plan</div></div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div id="main">
+    <div id="topbar">
+      <div id="page-title"><em>Dashboard</em></div>
+      <button class="tb-btn gold" id="new-video-btn" onclick="goPage('generate')">✦ New Video</button>
+      <button class="tb-btn ghost" onclick="showToast('No new notifications','info')">🔔</button>
+    </div>
+    <div id="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="pg-dashboard">
+        <div class="stat-row">
+          <div class="stat-card"><div class="sc-label">Videos Generated</div><div class="sc-num">48</div><div class="sc-sub">↑ 12 this week</div></div>
+          <div class="stat-card"><div class="sc-label">Credits Remaining</div><div class="sc-num">172</div><div class="sc-sub">↑ Resets in 8 days</div></div>
+          <div class="stat-card"><div class="sc-label">Total Minutes</div><div class="sc-num">6.2</div><div class="sc-sub">↑ Across all videos</div></div>
+          <div class="stat-card"><div class="sc-label">Avg Gen Time</div><div class="sc-num">11s</div><div class="sc-sub" style="color:var(--blue)">↓ Faster than avg</div></div>
+        </div>
+        <div class="sec-hd">
+          <h2><em>Recent</em> creations</h2>
+          <button class="sec-link" onclick="goPage('gallery')">View all →</button>
+        </div>
+        <div class="video-grid" id="recent-grid"></div>
+        <div class="sec-hd"><h2>Quick <em>start</em></h2></div>
+        <div class="qs-grid">
+          <div class="qs-card" onclick="goPage('generate','t2v')"><div class="qs-icon">✦</div><div class="qs-title">Text to Video</div><div class="qs-sub">Describe any cinematic scene in natural language and watch it come alive</div></div>
+          <div class="qs-card" onclick="goPage('generate','i2v')"><div class="qs-icon">◈</div><div class="qs-title">Image to Video</div><div class="qs-sub">Upload any still image and animate it with cinematic motion</div></div>
+          <div class="qs-card" onclick="goPage('gallery')"><div class="qs-icon">⟡</div><div class="qs-title">Browse Gallery</div><div class="qs-sub">Explore your creations and get inspired for your next project</div></div>
+        </div>
+      </div>
+
+      <!-- GENERATE -->
+      <div class="page" id="pg-generate">
+        <div class="gen-wrap">
+          <div class="gpanel">
+            <div class="tabs">
+              <div class="tab active" id="tab-t2v" onclick="switchTab('t2v')">✦ Text to Video</div>
+              <div class="tab" id="tab-i2v" onclick="switchTab('i2v')">◈ Image to Video</div>
+            </div>
+            <div id="t2v-panel" style="display:flex;flex-direction:column;gap:10px;flex:1;">
+              <div class="flabel">Scene Description</div>
+              <textarea class="fprompt" id="main-prompt" style="flex:1;min-height:160px;" placeholder="Describe the cinematic scene you want to create…&#10;&#10;Tip: Include lighting, mood, camera movement and atmosphere for best results."></textarea>
+              <div class="prow">
+                <button class="sm-btn" onclick="document.getElementById('main-prompt').value='';document.getElementById('char-count').textContent='0 / 500'">Clear</button>
+                <button class="sm-btn" onclick="fillExample()">✦ Example</button>
+                <span style="margin-left:auto;font-family:'DM Mono',monospace;font-size:8.5px;color:var(--silver2);" id="char-count">0 / 500</span>
+              </div>
+            </div>
+            <div id="i2v-panel" style="display:none;flex-direction:column;gap:10px;flex:1;">
+              <div class="flabel">Upload Reference Image</div>
+              <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondrop="handleDrop(event)" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')">
+                <div id="upload-empty"><div class="upload-icon">◈</div><div class="upload-title">Drop image here</div><div class="upload-sub">PNG · JPG · WEBP &nbsp;·&nbsp; Max 20MB</div></div>
+                <img id="upload-preview" class="upload-preview" style="display:none;" alt="Preview"/>
+                <button class="uclear" id="upload-clear" onclick="clearUpload(event)">✕</button>
+              </div>
+              <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)"/>
+              <div class="flabel">Animation Instructions (optional)</div>
+              <textarea class="fprompt" style="min-height:80px;" placeholder="How should the image move? e.g. 'camera slowly zooms out, leaves blow in the wind'"></textarea>
+            </div>
+          </div>
+          <div class="gen-right">
+            <div class="gpanel" style="gap:13px;">
+              <div style="font-family:'Cormorant Garamond',serif;font-size:18px;">Generation <em style="font-style:italic;color:var(--gold);">Settings</em></div>
+              <div><div class="flabel">AI Model</div>
+                <select class="fselect">
+                  <option>Runway Gen-4 (Best Quality)</option>
+                  <option>Kling 1.6 (Fast)</option>
+                  <option>Luma Dream Machine</option>
+                  <option>Pika 2.0 (Budget)</option>
+                </select>
+              </div>
+              <div><div class="flabel">Cinematic Style</div><div class="chip-row" id="style-chips"></div></div>
+              <div><div class="flabel">Duration</div><div class="chip-row" id="dur-chips"></div></div>
+              <div><div class="flabel">Resolution</div><div class="chip-row" id="res-chips"></div></div>
+              <div><div class="flabel">Camera Motion</div>
+                <select class="fselect">
+                  <option>Static</option><option>Dolly In</option><option>Pan Left</option>
+                  <option>Pan Right</option><option>Aerial Orbit</option>
+                  <option>Handheld</option><option>Crane Up</option><option>Zoom Out</option>
+                </select>
+              </div>
+              <div class="divider"></div>
+              <div class="cost-row"><span>Estimated cost</span><span style="color:var(--gold)">~8 credits</span></div>
+              <button class="gen-btn" id="gen-btn" onclick="startGenerate()">✦ Generate Video</button>
+            </div>
+            <div class="prog-box" id="prog-box">
+              <div class="prog-hd"><div class="spinner"></div><div class="prog-title">Rendering your scene…</div></div>
+              <div class="prog-stage" id="prog-stage">Initializing model</div>
+              <div class="prog-bar"><div class="prog-fill" id="prog-fill"></div></div>
+              <div class="prog-pct" id="prog-pct">0%</div>
+            </div>
+            <div class="result-box" id="result-box">
+              <div class="result-player g2" id="result-player">
+                <span style="font-size:42px;">🎬</span>
+                <span style="font-family:'DM Mono',monospace;font-size:9.5px;color:rgba(240,234,220,.6);letter-spacing:.2em;text-transform:uppercase;">Video Ready</span>
+              </div>
+              <div class="ra-row">
+                <button class="ra-btn primary" onclick="showToast('Downloading video…','info')">⬇ Download</button>
+                <button class="ra-btn ghost" onclick="showToast('Opening remix…','info')">♻ Remix</button>
+                <button class="ra-btn ghost" onclick="showToast('Link copied!','ok')">⚙ Share</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GALLERY -->
+      <div class="page" id="pg-gallery">
+        <div class="filter-row">
+          <div class="chip on" id="gf-all" onclick="setFilter('all')">All Videos</div>
+          <div class="chip" id="gf-t2v" onclick="setFilter('t2v')">Text → Video</div>
+          <div class="chip" id="gf-i2v" onclick="setFilter('i2v')">Image → Video</div>
+          <div style="margin-left:auto;"><select class="fselect" style="width:auto;padding:7px 12px;font-size:9.5px;"><option>Newest First</option><option>Oldest First</option></select></div>
+        </div>
+        <div class="video-grid" id="gallery-grid"></div>
+      </div>
+
+      <!-- HISTORY -->
+      <div class="page" id="pg-history">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--silver2);letter-spacing:.1em;margin-bottom:18px;">SHOWING 9 OF 48 GENERATIONS</div>
+        <div class="hist-list" id="hist-list"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="pg-settings">
+        <div class="settings-wrap">
+          <div class="spanel">
+            <div class="sp-title"><em>Profile</em></div>
+            <div><div class="flabel">Display Name</div><input class="finput" value="Arjun Sharma"/></div>
+            <div><div class="flabel">Email Address</div><input class="finput" type="email" value="arjun@darsanai.ai"/></div>
+            <button class="save-btn" onclick="showToast('Profile saved successfully','ok')">Save Changes</button>
+          </div>
+          <div class="spanel">
+            <div class="sp-title">API <em>Keys</em></div>
+            <div><div class="flabel">Runway API Key</div><input class="finput" type="password" value="rw_••••••••••••••••••"/></div>
+            <div><div class="flabel">Kling API Key</div><input class="finput" placeholder="Not configured — paste key to enable"/></div>
+            <button class="save-btn" onclick="showToast('API keys saved','ok')">Save Keys</button>
+          </div>
+          <div class="spanel">
+            <div class="sp-title"><em>Subscription</em></div>
+            <div class="plan-row">
+              <div><div class="plan-name-txt">Creator Plan</div><div class="plan-price-txt">$29 / month</div></div>
+              <button class="save-btn" onclick="showToast('Opening billing portal…','info')">Manage Plan</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" onclick="closeModal()">
+  <div id="modal" onclick="event.stopPropagation()">
+    <div class="m-header">
+      <div class="m-title" id="m-title">Video <em>Preview</em></div>
+      <div class="m-close" onclick="closeModal()">✕</div>
+    </div>
+    <div class="m-body">
+      <div class="m-video" id="m-video"></div>
+      <div class="m-meta-grid" id="m-meta"></div>
+      <div class="m-prompt-box">
+        <div class="m-meta-label" style="font-family:'DM Mono',monospace;font-size:8px;color:var(--silver2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px;">Prompt</div>
+        <div style="font-size:13px;color:var(--silver);line-height:1.7;" id="m-prompt"></div>
+      </div>
+      <div class="m-actions">
+        <button class="m-btn gold" onclick="showToast('Downloading 4K video…','info');closeModal()">⬇ Download 4K</button>
+        <button class="m-btn ghost" onclick="showToast('Opening remix…','info');closeModal()">♻ Remix</button>
+        <button class="m-btn ghost" onclick="showToast('Link copied!','ok');closeModal()">⚙ Share</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast">
+  <div class="toast-inner">
+    <div class="toast-dot" id="toast-dot"></div>
+    <span id="toast-msg"></span>
+  </div>
+</div>
+
+<script>
+const VIDEOS=[
+  {id:1,title:"Neon Tokyo Rain",prompt:"Neon-lit Tokyo street in heavy rain, bokeh lights, reflections on wet pavement, slow dolly shot",type:"t2v",style:"Cyberpunk",dur:"5s",res:"4K",date:"2h ago",g:"g1",status:"done"},
+  {id:2,title:"Desert Sunrise Epic",prompt:"Golden desert dunes at dawn, sweeping aerial drone shot, epic and majestic",type:"t2v",style:"Golden Hour",dur:"8s",res:"4K",date:"5h ago",g:"g5",status:"done"},
+  {id:3,title:"Deep Ocean Abyss",prompt:"Dark ocean floor, bioluminescent creatures drifting, shafts of light piercing the deep",type:"i2v",style:"Cinematic",dur:"6s",res:"1080p",date:"1d ago",g:"g2",status:"done"},
+  {id:4,title:"Enchanted Forest",prompt:"Ancient forest at dawn, swirling mist, golden shafts of light through old growth trees",type:"i2v",style:"Ethereal",dur:"5s",res:"4K",date:"1d ago",g:"g4",status:"done"},
+  {id:5,title:"Space Station Orbit",prompt:"ISS slowly orbiting Earth, Pacific sunrise, crew silhouetted against stars",type:"t2v",style:"Sci-fi",dur:"10s",res:"4K",date:"2d ago",g:"g6",status:"done"},
+  {id:6,title:"Venice Canal Dusk",prompt:"Gondola gliding on Venice canal at golden hour, rippling reflections",type:"t2v",style:"Romantic",dur:"7s",res:"4K",date:"3d ago",g:"g8",status:"done"},
+  {id:7,title:"Arctic Aurora",prompt:"Northern lights over frozen tundra, vivid green and purple aurora borealis, time-lapse",type:"i2v",style:"Nature",dur:"8s",res:"4K",date:"3d ago",g:"g7",status:"done"},
+  {id:8,title:"Volcanic Eruption",prompt:"Lava flowing at night, molten orange glow on black rocks, billowing smoke clouds",type:"t2v",style:"Dramatic",dur:"6s",res:"1080p",date:"4d ago",g:"g3",status:"done"},
+];
+const EXAMPLES=[
+  "A lone astronaut walking on Mars, red dust swirling, two moons on the horizon, slow cinematic dolly, epic score",
+  "Japanese cherry blossom avenue at golden hour, pink petals drifting in slow motion, shallow depth of field",
+  "Underwater ancient ruins, shafts of light, schools of fish gliding past, ethereal and mysterious atmosphere",
+  "Vast wheat field at dusk, stalks swaying in the wind, dark storm clouds rolling in from the horizon",
+  "Futuristic megacity at night, flying vehicles weaving between skyscrapers, neon holograms, rain-slicked streets",
+];
+const STAGES=["Initializing model","Parsing scene elements","Generating keyframes","Rendering motion vectors","Applying cinematic grade","Encoding output","Finalizing video"];
+const STYLES=["Cinematic","Cyberpunk","Golden Hour","Noir","Ethereal","Sci-fi","Dramatic","Romantic"];
+const DURATIONS=["3s","5s","8s","10s","15s"];
+const RESOLUTIONS=["720p","1080p","4K"];
+const GRADS=["g1","g2","g3","g4","g5","g6","g7","g8"];
+
+let currentTab="t2v", genTimer=null, genPct=0, galleryFilter="all";
+
+// init
+(function(){
+  buildChips("style-chips",STYLES,"style","Cinematic");
+  buildChips("dur-chips",DURATIONS,"dur","5s");
+  buildChips("res-chips",RESOLUTIONS,"res","4K");
+  renderGrid("recent-grid",VIDEOS.slice(0,4));
+  renderGrid("gallery-grid",VIDEOS);
+  renderHistory();
+  document.getElementById("main-prompt").addEventListener("input",function(){
+    document.getElementById("char-count").textContent=this.value.length+" / 500";
+  });
+})();
+
+function buildChips(id,items,type,def){
+  const c=document.getElementById(id);
+  c.innerHTML=items.map(v=>`<div class="chip${v===def?" on":""}" onclick="selectChip(this,'${id}')">${v}</div>`).join("");
+}
+function selectChip(el,containerId){
+  document.querySelectorAll("#"+containerId+" .chip").forEach(c=>c.classList.remove("on"));
+  el.classList.add("on");
+}
+
+function goPage(page,tab){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
+  document.getElementById("pg-"+page).classList.add("active");
+  // find and highlight nav item
+  document.querySelectorAll(".nav-item").forEach(n=>{
+    if(n.textContent.toLowerCase().includes(page)||
+      (page==="dashboard"&&n.textContent.includes("Dashboard"))||
+      (page==="generate"&&n.textContent.includes("Generate"))||
+      (page==="gallery"&&n.textContent.includes("Gallery"))||
+      (page==="history"&&n.textContent.includes("History"))||
+      (page==="settings"&&n.textContent.includes("Settings")))
+      n.classList.add("active");
+  });
+  const titles={dashboard:"<em>Dashboard</em>",generate:"Generate <em>Video</em>",gallery:"My <em>Gallery</em>",history:"Generation <em>History</em>",settings:"<em>Settings</em>"};
+  document.getElementById("page-title").innerHTML=titles[page]||page;
+  document.getElementById("new-video-btn").style.display=page==="generate"?"none":"";
+  if(tab) switchTab(tab);
+}
+
+function switchTab(t){
+  currentTab=t;
+  document.getElementById("tab-t2v").classList.toggle("active",t==="t2v");
+  document.getElementById("tab-i2v").classList.toggle("active",t==="i2v");
+  document.getElementById("t2v-panel").style.display=t==="t2v"?"flex":"none";
+  document.getElementById("i2v-panel").style.display=t==="i2v"?"flex":"none";
+}
+
+function fillExample(){
+  const p=EXAMPLES[Math.floor(Math.random()*EXAMPLES.length)];
+  document.getElementById("main-prompt").value=p;
+  document.getElementById("char-count").textContent=p.length+" / 500";
+  showToast("Example prompt loaded ✦","info");
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById("upload-zone").classList.remove("drag");
+  const f=e.dataTransfer.files[0];
+  if(f&&f.type.startsWith("image/")) setImage(URL.createObjectURL(f));
+}
+function handleFileSelect(e){
+  const f=e.target.files[0];
+  if(f) setImage(URL.createObjectURL(f));
+}
+function setImage(url){
+  document.getElementById("upload-preview").src=url;
+  document.getElementById("upload-preview").style.display="block";
+  document.getElementById("upload-empty").style.display="none";
+  document.getElementById("upload-clear").style.display="flex";
+  document.getElementById("upload-zone").classList.add("filled");
+}
+function clearUpload(e){
+  e.stopPropagation();
+  document.getElementById("upload-preview").style.display="none";
+  document.getElementById("upload-empty").style.display="block";
+  document.getElementById("upload-clear").style.display="none";
+  document.getElementById("upload-zone").classList.remove("filled");
+  document.getElementById("file-input").value="";
+}
+
+function startGenerate(){
+  const prompt=document.getElementById("main-prompt").value.trim();
+  const hasImg=document.getElementById("upload-preview").style.display!=="none";
+  if(currentTab==="t2v"&&!prompt){showToast("Please enter a prompt first","err");return;}
+  if(currentTab==="i2v"&&!hasImg){showToast("Please upload an image first","err");return;}
+  document.getElementById("prog-box").style.display="block";
+  document.getElementById("result-box").style.display="none";
+  const btn=document.getElementById("gen-btn");
+  btn.disabled=true;
+  btn.innerHTML='<div class="shimmer"></div>Generating…';
+  genPct=0;let si=0;
+  document.getElementById("prog-stage").textContent=STAGES[0];
+  clearInterval(genTimer);
+  genTimer=setInterval(()=>{
+    genPct+=Math.random()*5.5+2;
+    if(genPct>=100){genPct=100;clearInterval(genTimer);setTimeout(finishGen,350);}
+    const nsi=Math.min(Math.floor(genPct/100*STAGES.length),STAGES.length-1);
+    if(nsi!==si){si=nsi;document.getElementById("prog-stage").textContent=STAGES[si];}
+    document.getElementById("prog-fill").style.width=genPct+"%";
+    document.getElementById("prog-pct").textContent=Math.round(genPct)+"%";
+  },220);
+}
+function finishGen(){
+  document.getElementById("prog-box").style.display="none";
+  document.getElementById("result-box").style.display="block";
+  const g=GRADS[Math.floor(Math.random()*GRADS.length)];
+  const rp=document.getElementById("result-player");
+  rp.className="result-player "+g;
+  rp.innerHTML='<span style="font-size:42px;">🎬</span><span style="font-family:\'DM Mono\',monospace;font-size:9.5px;color:rgba(240,234,220,.6);letter-spacing:.2em;text-transform:uppercase;">Video Ready</span>';
+  const btn=document.getElementById("gen-btn");
+  btn.disabled=false;btn.textContent="✦ Generate Video";
+  showToast("Video generated! 🎬","ok");
+}
+
+function setFilter(f){
+  galleryFilter=f;
+  ["all","t2v","i2v"].forEach(id=>{
+    document.getElementById("gf-"+id).classList.toggle("on",id===f);
+  });
+  renderGrid("gallery-grid",f==="all"?VIDEOS:VIDEOS.filter(v=>v.type===f));
+}
+
+function renderGrid(id,list){
+  document.getElementById(id).innerHTML=list.map(v=>`
+    <div class="vcard" onclick="openModal(${v.id})">
+      <div class="vthumb">
+        <div class="vthumb-bg ${v.g}">🎬</div>
+        <div class="vthumb-ov"><div class="play-btn">▶</div></div>
+      </div>
+      <div class="vbody">
+        <div class="vtitle">${v.title}</div>
+        <div class="vmeta">
+          <span class="vtag ${v.type}">${v.type==="t2v"?"T→V":"I→V"}</span>
+          <span>${v.style}</span><span>${v.dur}</span><span style="margin-left:auto">${v.date}</span>
+        </div>
+      </div>
+    </div>`).join("");
+}
+
+function renderHistory(){
+  const extra=[
+    {id:91,title:"Processing in queue…",type:"t2v",style:"Cyberpunk",dur:"8s",res:"4K",date:"Just now",g:"g1",status:"proc",prompt:"Futuristic city"},
+    {id:92,title:"Failed — timeout error",type:"t2v",style:"Noir",dur:"5s",res:"1080p",date:"6h ago",g:"g3",status:"fail",prompt:"Dark alley scene"},
+  ];
+  const items=[...VIDEOS.slice(0,7),...extra];
+  document.getElementById("hist-list").innerHTML=items.map(v=>`
+    <div class="hist-item" onclick="${v.status==="done"?"openModal("+v.id+")":"showToast('Video not ready yet','info')"}">
+      <div class="hthumb ${v.g}">🎬</div>
+      <div class="hinfo">
+        <div class="htitle">${v.title}</div>
+        <div class="hmeta">
+          <span class="vtag ${v.type}" style="padding:1px 5px">${v.type==="t2v"?"Text→Video":"Image→Video"}</span>
+          <span>${v.style}</span><span>${v.dur} · ${v.res}</span><span>${v.date}</span>
+        </div>
+      </div>
+      <div class="hstatus ${v.status==="done"?"s-done":v.status==="proc"?"s-proc":"s-fail"}">
+        ${v.status==="done"?"✓ Done":v.status==="proc"?"⟳ Processing":"✗ Failed"}
+      </div>
+    </div>`).join("");
+}
+
+function openModal(id){
+  const v=VIDEOS.find(x=>x.id===id);if(!v)return;
+  document.getElementById("m-title").innerHTML=`<em>${v.title}</em>`;
+  document.getElementById("m-video").className="m-video "+v.g;
+  document.getElementById("m-video").innerHTML=`<span style="font-size:48px;">🎬</span><span style="font-family:'DM Mono',monospace;font-size:9.5px;color:rgba(240,234,220,.6);letter-spacing:.2em;text-transform:uppercase;margin-top:6px;">Preview Playing</span>`;
+  document.getElementById("m-meta").innerHTML=[["Type",v.type==="t2v"?"Text→Video":"Image→Video"],["Style",v.style],["Duration",v.dur],["Resolution",v.res]]
+    .map(([k,val])=>`<div class="m-meta-cell"><div class="m-meta-label">${k}</div><div class="m-meta-val">${val}</div></div>`).join("");
+  document.getElementById("m-prompt").textContent=v.prompt;
+  document.getElementById("modal-overlay").classList.add("open");
+}
+function closeModal(){document.getElementById("modal-overlay").classList.remove("open");}
+
+let toastTimer=null;
+function showToast(msg,type){
+  clearTimeout(toastTimer);
+  document.getElementById("toast-msg").textContent=msg;
+  const dot=document.getElementById("toast-dot");
+  dot.className="toast-dot "+(type==="ok"?"td-ok":type==="err"?"td-err":"td-info");
+  const t=document.getElementById("toast");
+  t.classList.remove("show");
+  void t.offsetWidth;
+  t.classList.add("show");
+  toastTimer=setTimeout(()=>t.classList.remove("show"),3000);
+}
+</script>
+</body>
+</html>

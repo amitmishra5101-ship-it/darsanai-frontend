@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>darsanai — Sign In</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Syne:wght@400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ink:#07070a;--surface:#0e0e13;--s2:#141419;--s3:#1b1b23;
+  --border:#ffffff0d;--border2:#ffffff18;--border3:#ffffff28;
+  --gold:#c9a84c;--gold2:#7a6330;--glow:rgba(201,168,76,.10);
+  --paper:#f0eadc;--silver:#9a9aaa;--silver2:#5a5a6a;
+  --ok:#3ecf8e;--err:#e05c5c;--blue:#7eb8f7;
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--ink);color:var(--paper);font-family:'Syne',sans-serif;display:flex;align-items:stretch;}
+
+/* ── LEFT PANEL (cinematic visual) ── */
+.left{
+  width:52%;flex-shrink:0;
+  position:relative;overflow:hidden;
+  background:var(--surface);
+  display:flex;flex-direction:column;
+  justify-content:space-between;
+  padding:40px;
+}
+.left-bg{
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 80% 60% at 30% 40%,rgba(201,168,76,.08) 0%,transparent 65%),
+    radial-gradient(ellipse 50% 50% at 70% 70%,rgba(224,92,42,.05) 0%,transparent 60%),
+    linear-gradient(160deg,#0e0e13 0%,#07070a 100%);
+}
+/* Scanlines */
+.left-bg::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,255,255,.006) 3px,rgba(255,255,255,.006) 6px);
+  pointer-events:none;
+}
+/* Film strip left edge */
+.film-edge{
+  position:absolute;left:0;top:0;bottom:0;width:32px;
+  display:flex;flex-direction:column;gap:0;align-items:center;
+  padding:16px 0;opacity:.12;
+}
+.fh{width:18px;height:14px;border:1.5px solid var(--gold);margin:5px 0;flex-shrink:0;}
+
+.left-logo{position:relative;z-index:1;}
+.logo-text{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;letter-spacing:.1em;color:var(--gold);text-transform:uppercase;}
+.logo-text span{color:rgba(240,234,220,.3);font-weight:300;}
+
+.left-center{position:relative;z-index:1;flex:1;display:flex;flex-direction:column;justify-content:center;padding:40px 0;}
+.left-quote{
+  font-family:'Cormorant Garamond',serif;
+  font-size:clamp(32px,3.5vw,52px);
+  font-weight:300;line-height:1.1;
+  margin-bottom:24px;
+}
+.left-quote em{font-style:italic;color:var(--gold);}
+.left-sub{font-family:'DM Mono',monospace;font-size:11px;color:var(--silver);line-height:1.8;max-width:380px;}
+
+/* Floating video cards */
+.video-cards{
+  position:absolute;right:-20px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:10px;
+  opacity:.7;
+}
+.vc{
+  width:160px;height:90px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;
+  animation:float 3s ease-in-out infinite;
+}
+.vc:nth-child(2){animation-delay:.5s;}
+.vc:nth-child(3){animation-delay:1s;}
+@keyframes float{
+  0%,100%{transform:translateY(0);}
+  50%{transform:translateY(-8px);}
+}
+.vc1{background:linear-gradient(135deg,#1a0a2e,#4d1b6e);}
+.vc2{background:linear-gradient(135deg,#1a1400,#5c4a00);}
+.vc3{background:linear-gradient(135deg,#0a1628,#1e4a7a);}
+
+.left-stats{
+  position:relative;z-index:1;
+  display:flex;gap:36px;
+}
+.ls{font-family:'DM Mono',monospace;}
+.ls-num{font-family:'Cormorant Garamond',serif;font-size:28px;color:var(--gold);line-height:1;}
+.ls-label{font-size:8.5px;letter-spacing:.2em;color:var(--silver2);text-transform:uppercase;margin-top:3px;}
+
+/* ── RIGHT PANEL (form) ── */
+.right{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:48px 40px;overflow-y:auto;
+  background:var(--ink);
+}
+.auth-box{width:100%;max-width:420px;}
+
+/* Screen switcher */
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* Auth header */
+.auth-header{margin-bottom:36px;}
+.auth-eyebrow{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-bottom:10px;}
+.auth-title{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;line-height:1.05;margin-bottom:8px;}
+.auth-title em{font-style:italic;color:var(--gold);}
+.auth-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--silver);line-height:1.7;}
+
+/* Social buttons */
+.social-row{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+.social-btn{
+  width:100%;padding:13px;border-radius:8px;
+  background:var(--s2);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.1em;
+  color:var(--paper);cursor:pointer;transition:all .2s;
+}
+.social-btn:hover{border-color:var(--border3);background:var(--s3);}
+.social-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+
+/* Divider */
+.or-divider{display:flex;align-items:center;gap:14px;margin:20px 0;color:var(--silver2);font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;}
+.or-divider::before,.or-divider::after{content:'';flex:1;height:1px;background:var(--border2);}
+
+/* Form fields */
+.field{margin-bottom:14px;}
+.field-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--silver2);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;}
+.field-label a{color:var(--gold);cursor:pointer;transition:opacity .2s;text-decoration:none;}
+.field-label a:hover{opacity:.7;}
+.field-input-wrap{position:relative;}
+.field-input{
+  width:100%;background:var(--s2);border:1px solid var(--border2);
+  border-radius:7px;padding:13px 42px 13px 14px;
+  color:var(--paper);font-family:'DM Mono',monospace;font-size:11px;
+  outline:none;transition:border-color .2s;
+}
+.field-input:focus{border-color:rgba(201,168,76,.4);}
+.field-input.error{border-color:rgba(224,92,92,.5);}
+.field-input::placeholder{color:var(--silver2);}
+.field-icon{position:absolute;right:13px;top:50%;transform:translateY(-50%);font-size:14px;color:var(--silver2);cursor:pointer;transition:color .2s;user-select:none;}
+.field-icon:hover{color:var(--gold);}
+.field-error{font-family:'DM Mono',monospace;font-size:9px;color:var(--err);margin-top:5px;display:none;}
+.field-error.show{display:block;}
+
+/* Password strength */
+.pw-strength{margin-top:6px;display:none;}
+.pw-strength.show{display:block;}
+.pw-bars{display:flex;gap:3px;margin-bottom:4px;}
+.pw-bar{flex:1;height:3px;border-radius:2px;background:var(--border2);transition:background .25s;}
+.pw-bar.weak{background:var(--err);}
+.pw-bar.fair{background:orange;}
+.pw-bar.good{background:var(--gold);}
+.pw-bar.strong{background:var(--ok);}
+.pw-label{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--silver2);}
+
+/* Name row */
+.name-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* Submit button */
+.auth-btn{
+  width:100%;padding:15px;border-radius:8px;
+  background:var(--gold);border:none;
+  font-family:'DM Mono',monospace;font-size:10px;
+  letter-spacing:.25em;text-transform:uppercase;
+  color:var(--ink);cursor:pointer;
+  transition:all .2s;font-weight:500;
+  margin-top:4px;position:relative;overflow:hidden;
+}
+.auth-btn:hover{background:var(--paper);transform:translateY(-1px);}
+.auth-btn:disabled{background:var(--silver2);cursor:not-allowed;transform:none;}
+.auth-btn .shimmer{position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.22) 50%,transparent 60%);animation:shimmer 1.4s infinite;}
+@keyframes shimmer{from{transform:translateX(-100%);}to{transform:translateX(100%);}}
+
+/* Switch screen */
+.auth-switch{text-align:center;margin-top:24px;font-family:'DM Mono',monospace;font-size:10px;color:var(--silver2);}
+.auth-switch a{color:var(--gold);cursor:pointer;margin-left:6px;transition:opacity .2s;}
+.auth-switch a:hover{opacity:.7;}
+
+/* Terms */
+.auth-terms{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--silver2);text-align:center;margin-top:16px;line-height:1.8;}
+.auth-terms a{color:var(--silver);text-decoration:underline;cursor:pointer;}
+
+/* OTP screen */
+.otp-hint{font-family:'DM Mono',monospace;font-size:10px;color:var(--silver);text-align:center;margin-bottom:24px;line-height:1.8;}
+.otp-hint strong{color:var(--paper);}
+.otp-row{display:flex;gap:8px;justify-content:center;margin-bottom:24px;}
+.otp-input{
+  width:52px;height:60px;text-align:center;
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:8px;color:var(--paper);
+  font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;
+  outline:none;transition:border-color .2s;
+}
+.otp-input:focus{border-color:rgba(201,168,76,.5);}
+.otp-resend{font-family:'DM Mono',monospace;font-size:10px;color:var(--silver2);text-align:center;margin-top:12px;}
+.otp-resend a{color:var(--gold);cursor:pointer;}
+
+/* Success screen */
+.success-icon{font-size:52px;text-align:center;margin-bottom:20px;}
+.success-title{font-family:'Cormorant Garamond',serif;font-size:38px;font-weight:300;text-align:center;margin-bottom:10px;}
+.success-title em{font-style:italic;color:var(--gold);}
+.success-sub{font-family:'DM Mono',monospace;font-size:10px;color:var(--silver);text-align:center;line-height:1.8;margin-bottom:32px;}
+
+/* Toast */
+#toast{position:fixed;bottom:24px;right:24px;z-index:200;display:none;}
+#toast.show{display:flex;animation:fadeIn .25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateX(14px);}to{opacity:1;transform:translateX(0);}}
+.toast-inner{background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:12px 16px;display:flex;align-items:center;gap:9px;font-family:'DM Mono',monospace;font-size:10px;max-width:300px;}
+.tdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.dok{background:var(--ok);}.derr{background:var(--err);}.dinfo{background:var(--gold);}
+
+@media(max-width:768px){
+  .left{display:none;}
+  .right{padding:40px 24px;}
+}
+</style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="left">
+  <div class="left-bg"></div>
+  <div class="film-edge">
+    <div class="fh"></div><div class="fh"></div><div class="fh"></div>
+    <div class="fh"></div><div class="fh"></div><div class="fh"></div>
+    <div class="fh"></div><div class="fh"></div><div class="fh"></div>
+    <div class="fh"></div><div class="fh"></div><div class="fh"></div>
+    <div class="fh"></div><div class="fh"></div><div class="fh"></div>
+    <div class="fh"></div><div class="fh"></div><div class="fh"></div>
+  </div>
+
+  <div class="left-logo">
+    <div class="logo-text">darsanai</div>
+  </div>
+
+  <div class="left-center">
+    <div class="left-quote">
+      Turn your <em>imagination</em><br/>into cinematic<br/>reality
+    </div>
+    <div class="left-sub">
+      The most powerful AI video generation platform. 
+      Text to video, image to video — in seconds.
+    </div>
+
+    <div class="video-cards">
+      <div class="vc vc1">🎬</div>
+      <div class="vc vc2">🎥</div>
+      <div class="vc vc3">✦</div>
+    </div>
+  </div>
+
+  <div class="left-stats">
+    <div class="ls"><div class="ls-num">2M+</div><div class="ls-label">Videos Made</div></div>
+    <div class="ls"><div class="ls-num">48K</div><div class="ls-label">Creators</div></div>
+    <div class="ls"><div class="ls-num">4K</div><div class="ls-label">Resolution</div></div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="right">
+<div class="auth-box">
+
+  <!-- ── SIGN IN ── -->
+  <div class="screen active" id="screen-signin">
+    <div class="auth-header">
+      <div class="auth-eyebrow">// Welcome back</div>
+      <div class="auth-title">Sign in to<br/><em>darsanai</em></div>
+      <div class="auth-sub">Don't have an account? <a onclick="show('signup')" style="color:var(--gold);cursor:pointer;">Create one free →</a></div>
+    </div>
+
+    <div class="social-row">
+      <button class="social-btn" onclick="socialAuth('Google')">
+        <div class="social-icon">G</div> Continue with Google
+      </button>
+      <button class="social-btn" onclick="socialAuth('GitHub')">
+        <div class="social-icon">⌥</div> Continue with GitHub
+      </button>
+    </div>
+
+    <div class="or-divider">or</div>
+
+    <div class="field">
+      <div class="field-label">Email Address</div>
+      <div class="field-input-wrap">
+        <input class="field-input" type="email" id="si-email" placeholder="you@example.com" autocomplete="email"/>
+        <span class="field-icon">✉</span>
+      </div>
+      <div class="field-error" id="si-email-err">Please enter a valid email address</div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">
+        Password
+        <a onclick="show('forgot')">Forgot password?</a>
+      </div>
+      <div class="field-input-wrap">
+        <input class="field-input" type="password" id="si-password" placeholder="Your password" autocomplete="current-password"/>
+        <span class="field-icon" onclick="togglePw('si-password', this)">👁</span>
+      </div>
+      <div class="field-error" id="si-pw-err">Incorrect email or password</div>
+    </div>
+
+    <button class="auth-btn" id="signin-btn" onclick="handleSignIn()">
+      Sign In to darsanai
+    </button>
+
+    <div class="auth-terms">
+      Protected by enterprise-grade security.
+      <a>Privacy Policy</a> · <a>Terms of Service</a>
+    </div>
+  </div>
+
+  <!-- ── SIGN UP ── -->
+  <div class="screen" id="screen-signup">
+    <div class="auth-header">
+      <div class="auth-eyebrow">// Join free</div>
+      <div class="auth-title">Create your<br/><em>account</em></div>
+      <div class="auth-sub">Already have an account? <a onclick="show('signin')" style="color:var(--gold);cursor:pointer;">Sign in →</a></div>
+    </div>
+
+    <div class="social-row">
+      <button class="social-btn" onclick="socialAuth('Google')">
+        <div class="social-icon">G</div> Continue with Google
+      </button>
+    </div>
+
+    <div class="or-divider">or sign up with email</div>
+
+    <div class="name-row">
+      <div class="field">
+        <div class="field-label">First Name</div>
+        <input class="field-input" type="text" id="su-first" placeholder="Arjun" autocomplete="given-name"/>
+        <div class="field-error" id="su-first-err">Required</div>
+      </div>
+      <div class="field">
+        <div class="field-label">Last Name</div>
+        <input class="field-input" type="text" id="su-last" placeholder="Sharma" autocomplete="family-name"/>
+      </div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Email Address</div>
+      <div class="field-input-wrap">
+        <input class="field-input" type="email" id="su-email" placeholder="you@example.com" autocomplete="email"/>
+        <span class="field-icon">✉</span>
+      </div>
+      <div class="field-error" id="su-email-err">Please enter a valid email</div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Password</div>
+      <div class="field-input-wrap">
+        <input class="field-input" type="password" id="su-password" placeholder="Min. 8 characters" oninput="checkStrength(this.value)" autocomplete="new-password"/>
+        <span class="field-icon" onclick="togglePw('su-password', this)">👁</span>
+      </div>
+      <div class="pw-strength" id="pw-strength">
+        <div class="pw-bars">
+          <div class="pw-bar" id="pb1"></div>
+          <div class="pw-bar" id="pb2"></div>
+          <div class="pw-bar" id="pb3"></div>
+          <div class="pw-bar" id="pb4"></div>
+        </div>
+        <div class="pw-label" id="pw-label">Too short</div>
+      </div>
+      <div class="field-error" id="su-pw-err">Password must be at least 8 characters</div>
+    </div>
+
+    <button class="auth-btn" id="signup-btn" onclick="handleSignUp()">
+      Create Free Account ✦
+    </button>
+
+    <div class="auth-terms">
+      By creating an account you agree to our
+      <a>Terms of Service</a> and <a>Privacy Policy</a>.
+      Get 20 free generations — no credit card required.
+    </div>
+  </div>
+
+  <!-- ── OTP VERIFICATION ── -->
+  <div class="screen" id="screen-otp">
+    <div class="auth-header" style="text-align:center;">
+      <div class="auth-eyebrow">// Verify your email</div>
+      <div class="auth-title" style="text-align:center;">Check your<br/><em>inbox</em></div>
+    </div>
+
+    <div class="otp-hint">
+      We sent a 6-digit code to<br/>
+      <strong id="otp-email-display"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="84fdebf1f6c4e1e9e5ede8aae7ebe9">[email&#160;protected]</a></strong>
+    </div>
+
+    <div class="otp-row">
+      <input class="otp-input" type="text" maxlength="1" id="otp0" oninput="otpNext(this,0)"/>
+      <input class="otp-input" type="text" maxlength="1" id="otp1" oninput="otpNext(this,1)"/>
+      <input class="otp-input" type="text" maxlength="1" id="otp2" oninput="otpNext(this,2)"/>
+      <input class="otp-input" type="text" maxlength="1" id="otp3" oninput="otpNext(this,3)"/>
+      <input class="otp-input" type="text" maxlength="1" id="otp4" oninput="otpNext(this,4)"/>
+      <input class="otp-input" type="text" maxlength="1" id="otp5" oninput="otpNext(this,5)"/>
+    </div>
+
+    <button class="auth-btn" id="otp-btn" onclick="handleOTP()">
+      Verify Email
+    </button>
+
+    <div class="otp-resend">
+      Didn't receive it? <a onclick="resendOTP()" id="resend-link">Resend code</a>
+      <span id="resend-timer" style="display:none;"> · Resend in <span id="countdown">30</span>s</span>
+    </div>
+
+    <div class="auth-switch">
+      <a onclick="show('signup')" style="color:var(--silver2);">← Back</a>
+    </div>
+  </div>
+
+  <!-- ── FORGOT PASSWORD ── -->
+  <div class="screen" id="screen-forgot">
+    <div class="auth-header">
+      <div class="auth-eyebrow">// Password reset</div>
+      <div class="auth-title">Reset your<br/><em>password</em></div>
+      <div class="auth-sub">Enter your email and we'll send you a reset link.</div>
+    </div>
+
+    <div class="field">
+      <div class="field-label">Email Address</div>
+      <div class="field-input-wrap">
+        <input class="field-input" type="email" id="fp-email" placeholder="you@example.com"/>
+        <span class="field-icon">✉</span>
+      </div>
+      <div class="field-error" id="fp-email-err">Please enter a valid email</div>
+    </div>
+
+    <button class="auth-btn" onclick="handleForgot()">
+      Send Reset Link
+    </button>
+
+    <div class="auth-switch">
+      ← <a onclick="show('signin')">Back to sign in</a>
+    </div>
+  </div>
+
+  <!-- ── SUCCESS ── -->
+  <div class="screen" id="screen-success">
+    <div class="success-icon">🎬</div>
+    <div class="success-title">Welcome to<br/><em>darsanai</em></div>
+    <div class="success-sub">
+      Your account is ready.<br/>
+      You have <strong style="color:var(--gold);">20 free credits</strong> to start creating.
+    </div>
+    <button class="auth-btn" onclick="goToDashboard()">
+      ✦ Enter Studio
+    </button>
+  </div>
+
+</div>
+</div>
+
+<!-- TOAST -->
+<div id="toast">
+  <div class="toast-inner">
+    <div class="tdot dinfo" id="tdot"></div>
+    <span id="tmsg"></span>
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+let pendingEmail = '';
+let countdownTimer = null;
+
+function show(screen) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  // Focus first input
+  const first = document.querySelector('#screen-' + screen + ' .field-input, #screen-' + screen + ' .otp-input');
+  if (first) setTimeout(() => first.focus(), 100);
+}
+
+function togglePw(id, icon) {
+  const input = document.getElementById(id);
+  if (input.type === 'password') { input.type = 'text'; icon.textContent = '🙈'; }
+  else { input.type = 'password'; icon.textContent = '👁'; }
+}
+
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  if (loading) {
+    btn.dataset.orig = btn.innerHTML;
+    btn.innerHTML = '<div class="shimmer"></div>Processing…';
+  } else {
+    btn.innerHTML = btn.dataset.orig || btn.innerHTML;
+  }
+}
+
+function showError(id, show) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show', show);
+}
+
+// ── SIGN IN ───────────────────────────────────────────────────
+function handleSignIn() {
+  const email = document.getElementById('si-email').value.trim();
+  const pass  = document.getElementById('si-password').value;
+  let valid   = true;
+
+  if (!email || !email.includes('@')) { showError('si-email-err', true); valid = false; }
+  else showError('si-email-err', false);
+
+  if (!pass || pass.length < 6) { showError('si-pw-err', true); valid = false; }
+  else showError('si-pw-err', false);
+
+  if (!valid) return;
+
+  setLoading('signin-btn', true);
+
+  // ── REAL CLERK INTEGRATION ────────────────────────────────
+  // import { useSignIn } from '@clerk/clerk-react';
+  // const { signIn, setActive } = useSignIn();
+  // const result = await signIn.create({ identifier: email, password: pass });
+  // if (result.status === 'complete') {
+  //   await setActive({ session: result.createdSessionId });
+  //   navigate('/dashboard');
+  // }
+
+  // Demo simulation:
+  setTimeout(() => {
+    setLoading('signin-btn', false);
+    toast('Signed in successfully!', 'ok');
+    setTimeout(() => show('success'), 800);
+  }, 1400);
+}
+
+// ── SIGN UP ───────────────────────────────────────────────────
+function handleSignUp() {
+  const first = document.getElementById('su-first').value.trim();
+  const email = document.getElementById('su-email').value.trim();
+  const pass  = document.getElementById('su-password').value;
+  let valid   = true;
+
+  if (!first) { showError('su-first-err', true); valid = false; }
+  else showError('su-first-err', false);
+
+  if (!email || !email.includes('@')) { showError('su-email-err', true); valid = false; }
+  else showError('su-email-err', false);
+
+  if (!pass || pass.length < 8) { showError('su-pw-err', true); valid = false; }
+  else showError('su-pw-err', false);
+
+  if (!valid) return;
+
+  pendingEmail = email;
+  setLoading('signup-btn', true);
+
+  // ── REAL CLERK INTEGRATION ────────────────────────────────
+  // const { signUp } = useSignUp();
+  // await signUp.create({ firstName: first, emailAddress: email, password: pass });
+  // await signUp.prepareEmailAddressVerification({ strategy: 'email_code' });
+  // → navigate to OTP screen
+
+  setTimeout(() => {
+    setLoading('signup-btn', false);
+    document.getElementById('otp-email-display').textContent = email;
+    show('otp');
+    startResendCountdown();
+  }, 1200);
+}
+
+// ── OTP ───────────────────────────────────────────────────────
+function otpNext(input, idx) {
+  input.value = input.value.replace(/[^0-9]/g, '');
+  if (input.value.length === 1 && idx < 5) {
+    document.getElementById('otp' + (idx + 1)).focus();
+  }
+  // Auto-submit when all 6 filled
+  const code = [...Array(6)].map((_, i) => document.getElementById('otp' + i).value).join('');
+  if (code.length === 6) setTimeout(handleOTP, 300);
+}
+
+function handleOTP() {
+  const code = [...Array(6)].map((_, i) => document.getElementById('otp' + i).value).join('');
+  if (code.length < 6) { toast('Please enter all 6 digits', 'err'); return; }
+
+  setLoading('otp-btn', true);
+
+  // ── REAL CLERK INTEGRATION ────────────────────────────────
+  // await signUp.attemptEmailAddressVerification({ code });
+  // if (signUp.status === 'complete') {
+  //   await setActive({ session: signUp.createdSessionId });
+  //   navigate('/dashboard');
+  // }
+
+  setTimeout(() => {
+    setLoading('otp-btn', false);
+    // Use "000000" as the test code in demo
+    if (code === '000000' || true) {
+      toast('Email verified! 🎉', 'ok');
+      setTimeout(() => show('success'), 600);
+    }
+  }, 1200);
+}
+
+function resendOTP() {
+  toast('New code sent to your email', 'ok');
+  startResendCountdown();
+}
+
+function startResendCountdown() {
+  clearInterval(countdownTimer);
+  let secs = 30;
+  document.getElementById('resend-link').style.pointerEvents = 'none';
+  document.getElementById('resend-link').style.opacity = '.4';
+  document.getElementById('resend-timer').style.display = 'inline';
+  document.getElementById('countdown').textContent = secs;
+  countdownTimer = setInterval(() => {
+    secs--;
+    document.getElementById('countdown').textContent = secs;
+    if (secs <= 0) {
+      clearInterval(countdownTimer);
+      document.getElementById('resend-link').style.pointerEvents = '';
+      document.getElementById('resend-link').style.opacity = '1';
+      document.getElementById('resend-timer').style.display = 'none';
+    }
+  }, 1000);
+}
+
+// ── FORGOT PASSWORD ───────────────────────────────────────────
+function handleForgot() {
+  const email = document.getElementById('fp-email').value.trim();
+  if (!email || !email.includes('@')) { showError('fp-email-err', true); return; }
+  showError('fp-email-err', false);
+  toast('Reset link sent to ' + email, 'ok');
+  setTimeout(() => show('signin'), 2000);
+}
+
+// ── SOCIAL AUTH ───────────────────────────────────────────────
+function socialAuth(provider) {
+  toast('Connecting to ' + provider + '…', 'info');
+  // ── REAL CLERK INTEGRATION ───
+  // await signIn.authenticateWithRedirect({
+  //   strategy: provider === 'Google' ? 'oauth_google' : 'oauth_github',
+  //   redirectUrl: '/sso-callback',
+  //   redirectUrlComplete: '/dashboard',
+  // });
+  setTimeout(() => { toast('Signed in with ' + provider + '!', 'ok'); setTimeout(() => show('success'), 600); }, 1400);
+}
+
+// ── PASSWORD STRENGTH ─────────────────────────────────────────
+function checkStrength(pw) {
+  const el = document.getElementById('pw-strength');
+  el.classList.toggle('show', pw.length > 0);
+  const score = [pw.length >= 8, /[A-Z]/.test(pw), /[0-9]/.test(pw), /[^A-Za-z0-9]/.test(pw)].filter(Boolean).length;
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+  const classes = ['', 'weak', 'fair', 'good', 'strong'];
+  document.getElementById('pw-label').textContent = pw.length < 8 ? 'Too short' : labels[score];
+  for (let i = 1; i <= 4; i++) {
+    const bar = document.getElementById('pb' + i);
+    bar.className = 'pw-bar' + (i <= score ? ' ' + classes[score] : '');
+  }
+}
+
+// ── DASHBOARD ─────────────────────────────────────────────────
+function goToDashboard() {
+  toast('Loading your studio…', 'info');
+  // window.location.href = '/dashboard';
+  setTimeout(() => toast('In production this redirects to your dashboard!', 'ok'), 800);
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = 'info') {
+  clearTimeout(toastTimer);
+  document.getElementById('tmsg').textContent = msg;
+  document.getElementById('tdot').className = 'tdot ' + (type === 'ok' ? 'dok' : type === 'err' ? 'derr' : 'dinfo');
+  const t = document.getElementById('toast');
+  t.classList.remove('show');
+  void t.offsetWidth;
+  t.classList.add('show');
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Enter') return;
+  const active = doc
