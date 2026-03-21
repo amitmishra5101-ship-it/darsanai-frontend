@@ -1330,16 +1330,22 @@
 ></script>
 
 <script>
-  window.addEventListener("load", async function () {
-    await window.Clerk.load();
-    document.querySelectorAll('a, button').forEach(el => {
+  function openClerkSignUp(e) {
+    e.preventDefault();
+    if (window.Clerk) {
+      window.Clerk.openSignUp();
+    } else {
+      setTimeout(function() { window.Clerk.openSignUp(); }, 1000);
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('a, button').forEach(function(el) {
       if (el.textContent.trim().toUpperCase().includes('EARLY ACCESS')) {
-        el.addEventListener('click', function(e) {
-          e.preventDefault();
-          window.Clerk.openSignUp();
-        });
+        el.onclick = openClerkSignUp;
       }
     });
   });
-</script> </body>
+</script>
+</body>
 </html>
