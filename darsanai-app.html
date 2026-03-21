@@ -655,5 +655,147 @@ function showToast(msg,type){
   toastTimer=setTimeout(()=>t.classList.remove("show"),3000);
 }
 </script>
+<script>
+(function() {
+
+  const API = 'https://darsanai-backend-code-production.up.railway.app';
+
+  function getToken() {
+    try {
+      return localStorage.getItem('__clerk_db_jwt')
+          || sessionStorage.getItem('__clerk_db_jwt')
+          || '';
+    } catch(e) { return ''; }
+  }
+
+  function authHeaders() {
+    const token = getToken();
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { 'Authorization': Bearer ${token} } : {})
+    };
+  }
+
+  function setProgress(pct, stage) {
+    const fill  = document.getElementById('prog-fill');
+    const pctEl = document.getElementById('prog-pct');
+    const stgEl = document.getElementById('prog-stage');
+    if (fill)  fill.style.width  = pct + '%';
+    if (pctEl) pctEl.textContent = Math.round(pct) + '%';
+    if (stgEl && stage) stgEl.textContent = stage;
+  }
+
+  function lockBtn() {
+    const btn = document.getElementById('gen-btn');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<div class="shimmer"></div>Generating…'; }
+  }
+
+  function unlockBtn() {
+    const btn = document.getElementById('gen-btn');
+    if (btn) { btn.disabled = false; btn.innerHTML = '✦ Generate Video'; }
+  }
+
+  async function pollJob(jobId) {
+    const STAGES = ['Initialising AI…','Analysing prompt…','Rendering frames…','Compositing…','Encoding 4K…','Uploading…','Finalising…'];
+    let attempts = 0;
+    return new Promise((resolve) => {
+      const timer = setInterval(async () => {
+        attempts++;
+        try {
+          const res = await fetch(${API}/api/jobs/${jobId}, { headers: authHeaders() });
+          const job = await res.json();
+          const pct = Math.min(95, attempts * 2.5);
+          setProgress(job.progress || pct, STAGES[Math.min(Math.floor(attempts/4), STAGES.length-1)]);
+          if (job.status === 'completed') {
+            clearInterval(timer);
+            setProgress(100, 'Complete!');
+            setTimeout(() => { showVideoResult(job); unlockBtn(); }, 400);
+            resolve(job);
+          } else if (job.status === 'failed') {
+            clearInterval(timer);
+            showToast(job.error || 'Generation failed', 'err');
+            unlockBtn(); resolve(null);
+          } else if (attempts >= 120) {
+            clearInterval(timer);
+            showToast('Timed out — check your video library', 'err');
+            unlockBtn(); resolve(null);
+          }
+        } catch(e) { console.warn('Poll error:', e); }
+      }, 3000);
+    });
+  }
+
+  function showVideoResult(job) {
+    const url = job.videoUrl || job.output?.url || job.url;
+    if (!url) { showToast('No video URL returned', 'err'); return; }
+    document.getElementById('prog-box').style.display   = 'none';
+    document.getElementById('result-box').style.display = 'block';
+    document.getElementById('result-box').innerHTML = `
+      <video src="${url}" controls autoplay loop
+        style="width:100%;border-radius:8px;max-height:400px;background:#000;display:block;">
+      </video>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <a href="${url}" download="darsanai-${Date.now()}.mp4"
+          style="flex:1;text-align:center;padding:9px;background:var(--gold);color:var(--ink);
+                 border-radius:6px;font-family:'DM Mono',monospace;font-size:10px;
+                 letter-spacing:.15em;text-decoration:none;text-transform:uppercase;font-weight:600;">
+          ⬇ Download
+        </a>
+        <button onclick="startGenerate()"
+          style="flex:1;padding:9px;background:var(--s2);color:var(--paper);
+                 border:1px solid var(--border);border-radius:6px;cursor:pointer;
+                 font-family:'DM Mono',monospace;font-size:10px;letter-spacing:.15em;text-transform:uppercase;">
+          ↺ Again
+        </button>
+      </div>`;
+    showToast('Video ready!', 'ok');
+  }
+
+  window.startGenerate = async function() {
+    const prompt = document.getElementById('main-prompt')?.value?.trim();
+    const hasImg = document.getElementById('upload-preview')?.style?.display !== 'none';
+    if (currentTab === 't2v' && !prompt) { showToast('Please enter a prompt first', 'err'); return; }
+    if (currentTab === 'i2v' && !hasImg) { showToast('Please upload an image first', 'err'); return; }
+    lockBtn();
+    document.getElementById('prog-box').style.display   = 'block';
+    document.getElementById('result-box').style.display = 'none';
+    setProgress(2, 'Submitting job…');
+    clearInterval(genTimer);
+    try {
+      if (currentTab === 't2v') {
+        const res  = await fetch(${API}/api/generate/text, {
+          method: 'POST', headers: authHeaders(),
+          body: JSON.stringify({ prompt, duration: 5, style: 'cinematic', model: 'runway' })
+        });
+        const data = await res.json();
+        if (!res.ok) { showToast(data.message || 'Failed', 'err'); unlockBtn(); return; }
+        await pollJob(data.jobId || data.id);
+      } else {
+        const file = document.getElementById('file-input')?.files?.[0];
+        const anim = document.querySelectorAll('textarea.fprompt')[1]?.value?.trim() || 'Cinematic zoom out';
+        if (!file) { showToast('No image found', 'err'); unlockBtn(); return; }
+        const form = new FormData();
+        form.append('image', file); form.append('prompt', anim);
+        form.append('duration', 5); form.append('model', 'runway');
+        const token = getToken();
+        const res   = await fetch(${API}/api/generate/image, {
+          method: 'POST',
+          headers: token ? { 'Authorization': Bearer ${token} } : {},
+          body: form
+        });
+        const data = await res.json();
+        if (!res.ok) { showToast(data.message || 'Failed', 'err'); unlockBtn(); return; }
+        await pollJob(data.jobId || data.id);
+      }
+    } catch(err) { showToast(Error: ${err.message}, 'err'); unlockBtn(); }
+  };
+
+  fetch(${API}/api/generate/health)
+    .then(r => r.json())
+    .then(d => console.log('✅ Backend:', d.status))
+    .catch(() => console.warn('⚠️ Backend unreachable'));
+
+})();
+</script>  
 </body>
 </html>
