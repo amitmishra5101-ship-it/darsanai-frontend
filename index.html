@@ -1347,5 +1347,13 @@ z-index: 999999;
     });
   });
 </script>
+ <script>
+ document.querySelectorAll('.feature-card').forEach(card => {
+    card.style.cursor = 'pointer';
+    card.addEventListener('click', () => {
+      window.location.href = '/darsanai-app.html';
+    });
+  });
+</script>
 </body>
 </html>
