@@ -1333,14 +1333,10 @@ z-index: 999999;
 ></script>
 
 <script>
-  function openClerkSignUp(e) {
-    e.preventDefault();
-    if (window.Clerk) {
-      window.Clerk.openSignUp();
-    } else {
-      setTimeout(function() { window.Clerk.openSignUp(); }, 1000);
-    }
-  }
+ function openClerkSignUp(e) {
+  e.preventDefault();
+  window.location.href = '/darsanai-auth-ui.html';
+}
 
   document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('a, button').forEach(function(el) {
