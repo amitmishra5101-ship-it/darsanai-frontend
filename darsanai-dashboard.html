@@ -662,7 +662,7 @@ async function generateVideo(){
   status.style.display='block';status.textContent='Sending to AI engine...';
   try{
     const h=await getHeaders();
-    const r=await fetch(`${API}/generate`,{method:'POST',headers:h,body:JSON.stringify({prompt,style,duration,resolution,type:'text-to-video',camera})});
+    const r=await fetch(`${API}/generate/text`,{method:'POST',headers:h,body:JSON.stringify({prompt,style,duration,resolution,type:'text-to-video',camera})});
     const d=await r.json();
     if(!r.ok) status.textContent=`❌ ${d.error||'Generation failed'}`;
     else{status.textContent=`✅ Queued! Your video appears in ~12 seconds.`;document.getElementById('prompt-input').value='';setTimeout(loadVideos,14000);}
