@@ -1,24 +1,33 @@
- 
 "use client";
 
 import { useState, useEffect } from "react";
 
+interface Voice {
+  voice_id: string;
+  name: string;
+  category?: string;
+  preview_url?: string;
+  labels?: {
+    description?: string;
+  };
+}
+
 export default function VoiceStudio() {
-  const [voices, setVoices] = useState([]);
+  const [voices, setVoices] = useState<Voice[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedVoice, setSelectedVoice] = useState(null);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedVoice, setSelectedVoice] = useState<Voice | null>(null);
 
   useEffect(() => {
     async function fetchVoices() {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-        const response = await fetch(${apiUrl}/api/voice/list);
+        const response = await fetch(`${apiUrl}/api/voice/list`);
         if (!response.ok) throw new Error("Failed to fetch voices");
         const data = await response.json();
         setVoices(data);
       } catch (err) {
-        setError(err.message);
+        setError(err instanceof Error ? err.message : "Unknown error");
       } finally {
         setLoading(false);
       }
@@ -27,19 +36,11 @@ export default function VoiceStudio() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="p-8 text-center text-white">
-        Loading voices...
-      </div>
-    );
+    return <div className="p-8 text-center text-white">Loading voices...</div>;
   }
 
   if (error) {
-    return (
-      <div className="p-8 text-center text-red-400">
-        Error: {error}
-      </div>
-    );
+    return <div className="p-8 text-center text-red-400">Error: {error}</div>;
   }
 
   return (
